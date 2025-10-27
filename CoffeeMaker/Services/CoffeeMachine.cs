@@ -18,15 +18,25 @@ public class CoffeeMachine
         this._beans = beans;
         this._water = water;
         this._milk = milk;
-        this._menu = new Dictionary<string, ICoffeeRecipe>(StringComparer.OrdinalIgnoreCase)
+        this._menu = Assembly.GetExecutingAssembly()
+            .GetTypes()
+            .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
+                        && !t.IsInterface
+                        && !t.IsAbstract)
+            .Select(t => Activator.CreateInstance(t) as ICoffeeRecipe)
+            .Where(r => r != null)
+            .ToDictionary(r => r.Name, r => r, StringComparer.OrdinalIgnoreCase);
+        // 메뉴 확인용 출력
+        Console.WriteLine("Loaded coffee recipes:");
+        foreach (var kvp in _menu)
         {
-            { "Americano", new Americano() },
-            { "Latte", new Latte() },
-        };
+            var recipe = kvp.Value;
+            Console.WriteLine($"- {recipe.Name} : Beans {recipe.BeansRequired}, Water {recipe.WaterRequired}, Milk {recipe.MilkRequired}");
+        }
         
         Console.WriteLine($"Coffee machine ready (Beans: {_beans}, Water: {_water}, Milk: {_milk})");
     }
-    
+
     public string MakeCoffee(string coffeeType)
     {
         // This method for making coffee has a design flaw:
