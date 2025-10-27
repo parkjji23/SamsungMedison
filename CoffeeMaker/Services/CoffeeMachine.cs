@@ -15,10 +15,10 @@ public class CoffeeMachine
 
     public CoffeeMachine(int beans, int water, int milk)
     {
-        this._beans = beans;
-        this._water = water;
-        this._milk = milk;
-        this._menu = Assembly.GetExecutingAssembly()
+        _beans = beans;
+        _water = water;
+        _milk = milk;
+        _menu = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
                         && !t.IsInterface
@@ -31,7 +31,8 @@ public class CoffeeMachine
         foreach (var kvp in _menu)
         {
             var recipe = kvp.Value;
-            Console.WriteLine($"- {recipe.Name} : Beans {recipe.BeansRequired}, Water {recipe.WaterRequired}, Milk {recipe.MilkRequired}");
+            Console.Write($"- {recipe.Name} : ");
+            Console.WriteLine(string.Join(", ", recipe.RequiredIngredients().Select(r => $"{r.Key} {r.Value}")));
         }
         
         Console.WriteLine($"Coffee machine ready (Beans: {_beans}, Water: {_water}, Milk: {_milk})");
@@ -48,18 +49,38 @@ public class CoffeeMachine
             throw new ArgumentException($"'{coffeeType}' is not a supported menu item.");
         } 
         var recipe = _menu[coffeeType];
-        
-        if(_beans < recipe.BeansRequired ||
-                  _water < recipe.WaterRequired ||
-                  _milk < recipe.MilkRequired)
+        var requiredIngredients = recipe.RequiredIngredients();
+
+        // 재고 확인
+        foreach (var item in requiredIngredients)
         {
-            throw new InvalidOperationException("Not enough ingredients.");
+            string itemName = item.Key;
+            int itemAmount = item.Value;
+            
+            int inventory = itemName.ToLower() switch
+            {
+                "beans" => _beans,
+                "water" => _water,
+                "milk" => _milk,
+                _ => 0,
+            };
+
+            if (inventory < itemAmount)
+            {
+                throw new InvalidOperationException("Not enough ingredients.");
+            }
         }
 
         Console.WriteLine($"Starting to make {recipe.Name}");
-        _beans -= recipe.BeansRequired;
-        _water -= recipe.WaterRequired;
-        _milk -= recipe.MilkRequired;
+        foreach (var item in requiredIngredients)
+        {
+            switch (item.Key.ToLower())
+            {
+                case "beans": _beans -= item.Value; break;
+                case "water": _water -= item.Value; break;
+                case "milk": _milk -= item.Value; break;
+            }
+        }
         
         Console.WriteLine($"✅ {recipe.Name} is ready! (Remaining ingredients: Beans {_beans}, Water {_water}, Milk {_milk})");
         return recipe.Name;

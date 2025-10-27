@@ -5,7 +5,13 @@ namespace CoffeeMaker.Models;
 public class Latte : ICoffeeRecipe
 {
     public string Name => "Latte";
-    public int BeansRequired => 1;
-    public int WaterRequired => 0;
-    public int MilkRequired => 2;
+
+    public Dictionary<string, int> RequiredIngredients()
+    {
+        return new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Beans", 1 },
+            { "Milk", 2 },
+        };
+    }
 }
