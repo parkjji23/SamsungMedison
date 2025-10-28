@@ -12,6 +12,7 @@ public class CoffeeMachine
     private int _water;
     private int _milk;
     private readonly Dictionary<string, ICoffeeRecipe> _menu;
+    private readonly IngredientManager _inventory;
 
     public CoffeeMachine(int beans, int water, int milk)
     {
@@ -36,6 +37,8 @@ public class CoffeeMachine
         }
         
         Console.WriteLine($"Coffee machine ready (Beans: {_beans}, Water: {_water}, Milk: {_milk})");
+        
+        _inventory = new IngredientManager(beans, water, milk);
     }
 
     public string MakeCoffee(string coffeeType)
@@ -49,40 +52,17 @@ public class CoffeeMachine
             throw new ArgumentException($"'{coffeeType}' is not a supported menu item.");
         } 
         var recipe = _menu[coffeeType];
-        var requiredIngredients = recipe.RequiredIngredients();
+        var recipeIngredients = recipe.RequiredIngredients();
 
         // 재고 확인
-        foreach (var item in requiredIngredients)
-        {
-            string itemName = item.Key;
-            int itemAmount = item.Value;
-            
-            int inventory = itemName.ToLower() switch
-            {
-                "beans" => _beans,
-                "water" => _water,
-                "milk" => _milk,
-                _ => 0,
-            };
-
-            if (inventory < itemAmount)
-            {
-                throw new InvalidOperationException("Not enough ingredients.");
-            }
-        }
-
+        _inventory.Check(recipeIngredients);
+        // 재고 차감
         Console.WriteLine($"Starting to make {recipe.Name}");
-        foreach (var item in requiredIngredients)
-        {
-            switch (item.Key.ToLower())
-            {
-                case "beans": _beans -= item.Value; break;
-                case "water": _water -= item.Value; break;
-                case "milk": _milk -= item.Value; break;
-            }
-        }
+        _inventory.Consume(recipeIngredients);
         
         Console.WriteLine($"✅ {recipe.Name} is ready! (Remaining ingredients: Beans {_beans}, Water {_water}, Milk {_milk})");
         return recipe.Name;
     }
+
+    
 }
