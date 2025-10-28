@@ -8,30 +8,16 @@ using System;
 
 public class CoffeeMachine
 {
-    private readonly Dictionary<string, ICoffeeRecipe> _menu;
     private readonly IngredientManager _inventory;
+    private readonly MenuRecipe _menu;
 
     public CoffeeMachine(Dictionary<string, int> ingredients)
     {
         _inventory = new IngredientManager(ingredients);
         _inventory.Status();
-        
-        _menu = Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
-                        && !t.IsInterface
-                        && !t.IsAbstract)
-            .Select(t => Activator.CreateInstance(t) as ICoffeeRecipe)
-            .Where(r => r != null)
-            .ToDictionary(r => r.Name, r => r, StringComparer.OrdinalIgnoreCase);
-        // 메뉴 확인용 출력
-        Console.WriteLine("Loaded coffee recipes:");
-        foreach (var kvp in _menu)
-        {
-            var recipe = kvp.Value;
-            Console.Write($"- {recipe.Name} : ");
-            Console.WriteLine(string.Join(", ", recipe.RequiredIngredients().Select(r => $"{r.Key} {r.Value}")));
-        }
+
+        _menu = new MenuRecipe();
+        _menu.Status();
     }
 
     public string MakeCoffee(string coffeeType)
@@ -40,22 +26,17 @@ public class CoffeeMachine
         // it must be modified every time a new coffee type is introduced.
         Console.WriteLine($"\n> Order received for '{coffeeType}'");
         
-        if (!_menu.ContainsKey(coffeeType))
-        {
-            throw new ArgumentException($"'{coffeeType}' is not a supported menu item.");
-        } 
-        var recipe = _menu[coffeeType];
+        // 레시피 체크
+        var recipe = _menu.GetRecipe(coffeeType);
         var recipeIngredients = recipe.RequiredIngredients();
 
         Console.WriteLine($"Starting to make {recipe.Name}");
-        
-        // 재고 확인 및 차감
+        // 재고 체크 및 차감
         _inventory.CheckAndConsume(recipeIngredients);
         
+        // 커피 제작
         Console.WriteLine($"✅ {recipe.Name} is ready! (Remaining ingredients: "+
                           string.Join(", ", recipeIngredients.Select(kv => $"{kv.Key}: {kv.Value}"))+")");
         return recipe.Name;
     }
-
-    
 }
