@@ -4,7 +4,14 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var machine = new CoffeeMachine(beans: 10, water: 10, milk: 10);
+        var ingredients = new Dictionary<string, int>
+        {
+            {"Beans", 10},
+            {"Water", 10},
+            {"Milk", 10},
+        };
+        
+        var machine = new CoffeeMachine(ingredients);
         try
         {
             machine.MakeCoffee("Latte"); // 1beans, 2milk

@@ -4,30 +4,28 @@ namespace CoffeeMaker;
 
 public class IngredientManager
 {
-    private int _beans;
-    private int _water;
-    private int _milk;
-    public IngredientManager(int beans, int water, int milk)
+    private readonly Dictionary<string, int> _ingredients;
+    public IngredientManager(Dictionary<string, int> ingredients)
     {
-        _beans = beans;
-        _water = water;
-        _milk = milk;
+        _ingredients = new Dictionary<string, int>(ingredients,  StringComparer.OrdinalIgnoreCase);
+    }
+
+    public void Status()
+    {
+        Console.WriteLine("Coffee machine ready (" + string.Join(", ", _ingredients.Select(kv => $"{kv.Key}: {kv.Value}"))+")");
     }
     
     // 재고 확인 및 차감
+    public void CheckAndConsume(Dictionary<string, int> recipeIngredients)
+    {
+        Check(recipeIngredients);
+        Consume(recipeIngredients);
+    }
     public void Check(Dictionary<string, int> required)
     {
         foreach (var item in required)
         {
-            int available = item.Key.ToLower() switch
-            {
-                "beans" => _beans,
-                "water" => _water,
-                "milk" => _milk,
-                _ => 0,
-            };
-
-            if (available < item.Value)
+            if (!_ingredients.TryGetValue(item.Key, out int available) || available < item.Value)
             {
                 throw new InvalidOperationException($"Not enough ingredients {item.Key}.");
             }
@@ -38,11 +36,9 @@ public class IngredientManager
     {
         foreach (var item in required)
         {
-            switch (item.Key.ToLower())
+            if (_ingredients.ContainsKey(item.Key))
             {
-                case "beans": _beans -= item.Value; break;
-                case "water": _water -= item.Value; break;
-                case "milk": _milk -= item.Value; break;
+                _ingredients[item.Key] -= item.Value;
             }
         }
     }

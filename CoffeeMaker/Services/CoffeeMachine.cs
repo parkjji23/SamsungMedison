@@ -8,17 +8,14 @@ using System;
 
 public class CoffeeMachine
 {
-    private int _beans;
-    private int _water;
-    private int _milk;
     private readonly Dictionary<string, ICoffeeRecipe> _menu;
     private readonly IngredientManager _inventory;
 
-    public CoffeeMachine(int beans, int water, int milk)
+    public CoffeeMachine(Dictionary<string, int> ingredients)
     {
-        _beans = beans;
-        _water = water;
-        _milk = milk;
+        _inventory = new IngredientManager(ingredients);
+        _inventory.Status();
+        
         _menu = Assembly.GetExecutingAssembly()
             .GetTypes()
             .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
@@ -35,10 +32,6 @@ public class CoffeeMachine
             Console.Write($"- {recipe.Name} : ");
             Console.WriteLine(string.Join(", ", recipe.RequiredIngredients().Select(r => $"{r.Key} {r.Value}")));
         }
-        
-        Console.WriteLine($"Coffee machine ready (Beans: {_beans}, Water: {_water}, Milk: {_milk})");
-        
-        _inventory = new IngredientManager(beans, water, milk);
     }
 
     public string MakeCoffee(string coffeeType)
@@ -54,13 +47,13 @@ public class CoffeeMachine
         var recipe = _menu[coffeeType];
         var recipeIngredients = recipe.RequiredIngredients();
 
-        // 재고 확인
-        _inventory.Check(recipeIngredients);
-        // 재고 차감
         Console.WriteLine($"Starting to make {recipe.Name}");
-        _inventory.Consume(recipeIngredients);
         
-        Console.WriteLine($"✅ {recipe.Name} is ready! (Remaining ingredients: Beans {_beans}, Water {_water}, Milk {_milk})");
+        // 재고 확인 및 차감
+        _inventory.CheckAndConsume(recipeIngredients);
+        
+        Console.WriteLine($"✅ {recipe.Name} is ready! (Remaining ingredients: "+
+                          string.Join(", ", recipeIngredients.Select(kv => $"{kv.Key}: {kv.Value}"))+")");
         return recipe.Name;
     }
 
