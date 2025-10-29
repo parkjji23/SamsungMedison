@@ -14,10 +14,20 @@ public class Program
         var machine = new CoffeeMachine(ingredients);
         try
         {
+            // Should succeed
             machine.MakeCoffee("Latte"); // 1beans, 2milk
             machine.MakeCoffee("Americano"); // 1beans, 2water
-            machine.MakeCoffee("Latte"); // Should succeed
-            machine.MakeCoffee("Latte"); // Should fail due to lack of ingredients
+            machine.MakeCoffee("Cappuccino"); // 2beans, 1water, 1milk (New Menu)
+            
+            // Not a supported menu item
+            machine.MakeCoffee("Malcha-Latte"); 
+            
+            // Should fail due to lack of ingredients
+            var largeOrders = new[] { "Latte", "Latte", "Latte", "Latte", "Latte", "Latte", "Latte" };
+            foreach (var orders in largeOrders)
+            {
+                machine.MakeCoffee(orders); 
+            }
         }
         catch (InvalidOperationException ex)
         {
