@@ -9,14 +9,22 @@ public class MenuRecipe
 
     public MenuRecipe()
     {
-        _menu = Assembly.GetExecutingAssembly()
-            .GetTypes()
-            .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
-                        && !t.IsInterface
-                        && !t.IsAbstract)
-            .Select(t => Activator.CreateInstance(t) as ICoffeeRecipe)
-            .Where(r => r != null)
-            .ToDictionary(r => r.Name, r => r, StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            _menu = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(t => typeof(ICoffeeRecipe).IsAssignableFrom(t)
+                            && !t.IsInterface
+                            && !t.IsAbstract)
+                .Select(t => Activator.CreateInstance(t) as ICoffeeRecipe)
+                .Where(r => r != null)
+                .ToDictionary(r => r.Name, r => r, StringComparer.OrdinalIgnoreCase);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+        
     }
 
     public void Status()

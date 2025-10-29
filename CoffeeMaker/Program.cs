@@ -19,6 +19,14 @@ public class Program
             machine.MakeCoffee("Latte"); // Should succeed
             machine.MakeCoffee("Latte"); // Should fail due to lack of ingredients
         }
+        catch (InvalidOperationException ex)
+        {
+            Console.WriteLine($"{ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"{ex.Message}");
+        }
         catch (Exception ex)
         {
             Console.WriteLine($"An error occurred: {ex.Message}");
